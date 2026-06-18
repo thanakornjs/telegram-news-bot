@@ -1,0 +1,24 @@
+name: Economic Calendar Alert
+
+on:
+  schedule:
+    - cron: '*/15 * * * *' # รันทุก 15 นาที ตลอด 24 ชั่วโมง
+  workflow_dispatch: # กดรันทดสอบเองได้
+
+jobs:
+  check-calendar:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Run Economic Calendar Alert
+        env:
+          BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
+          CHAT_ID: ${{ secrets.CHAT_ID }}
+        run: python economic_calendar.py
