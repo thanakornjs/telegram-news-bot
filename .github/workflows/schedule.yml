@@ -28,15 +28,4 @@ jobs:
           BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
           CHAT_ID: ${{ secrets.CHAT_ID }}
           NOTEBOOKLM_STORAGE_STATE: ${{ secrets.NOTEBOOKLM_STORAGE_STATE }}
-        run: |
-          python process_and_send.py \
-            "https://www.prachachat.net/category/finance" \
-            "https://www.bangkokbiznews.com/business/economic" \
-            "https://www.thansettakij.com/category/finance_investment" \
-            "https://www.posttoday.com/finance-stock" \
-            "https://www.matichon.co.th/economy" \
-            "https://www.set.or.th/th/market/market-summary" \
-            "https://finance.yahoo.com/news/" \
-            "https://www.cnbc.com/economy/" \
-            "https://www.bloomberg.com/markets" \
-            "https://www.reuters.com/finance/markets/"
+        run: python process_and_send.py
