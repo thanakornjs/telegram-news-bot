@@ -79,6 +79,7 @@ def fetch_calendar() -> list[dict]:
             "datetime": event_dt,
             "forecast": forecast,
             "previous": previous,
+            "actual": (event.findtext("actual") or "").strip(),
         })
 
     return events
@@ -102,6 +103,74 @@ def get_upcoming_events(events: list[dict]) -> list[dict]:
             upcoming.append(ev)
 
     return upcoming
+
+def get_released_events(events: list[dict]) -> list[dict]:
+    """กรองเหตุการณ์ที่เพิ่งประกาศผลจริงออกมาแล้ว (ภายใน 15 นาทีที่ผ่านมา)"""
+    now = datetime.now(timezone.utc)
+    window_start = now - timedelta(minutes=ALERT_BEFORE_MINUTES)
+
+    released = []
+    for ev in events:
+        if ev["impact"] not in WATCH_IMPACTS:
+            continue
+        if WATCH_COUNTRIES and ev["country"] not in WATCH_COUNTRIES:
+            continue
+        # เหตุการณ์ผ่านมาแล้ว และมีตัวเลข actual
+        if window_start <= ev["datetime"] <= now and ev["actual"]:
+            released.append(ev)
+
+    return released
+
+def parse_number(s: str) -> float | None:
+    """แปลงตัวเลขเช่น '0.3%', '204K' เป็น float"""
+    try:
+        s = s.replace("%", "").replace("K", "000").replace("M", "000000").replace(",", "").strip()
+        return float(s)
+    except Exception:
+        return None
+
+def format_result(events: list[dict]) -> str:
+    """สร้างข้อความสรุปผลตัวเลขจริงหลังประกาศ พร้อมวิเคราะห์ผลกระทบ"""
+    if not events:
+        return ""
+
+    lines = ["📢 *ผลประกาศตัวเลขเศรษฐกิจ*\n"]
+    for ev in events:
+        flag = COUNTRY_FLAG.get(ev["country"], "🌍")
+        thai_time = ev["datetime"].astimezone(THAI_TZ).strftime("%H:%M น.")
+
+        actual_val   = parse_number(ev["actual"])
+        forecast_val = parse_number(ev["forecast"])
+
+        # เปรียบเทียบ Actual vs Forecast
+        if actual_val is not None and forecast_val is not None:
+            diff = actual_val - forecast_val
+            if diff > 0:
+                verdict = f"🔴 สูงกว่าคาด! ({ev['actual']} vs คาด {ev['forecast']})"
+            elif diff < 0:
+                verdict = f"🟢 ต่ำกว่าคาด! ({ev['actual']} vs คาด {ev['forecast']})"
+            else:
+                verdict = f"⚪ ตรงตามคาด ({ev['actual']})"
+        else:
+            verdict = f"📊 ผลจริง: {ev['actual']}"
+
+        lines.append(f"{flag} [{ev['country']}] {ev['title']}")
+        lines.append(f"   🕐 เวลา: {thai_time}")
+        lines.append(f"   {verdict}")
+        lines.append(f"   📉 ครั้งก่อน: {ev['previous']}")
+
+        # เพิ่มคำวิเคราะห์ผลกระทบต่อตลาด
+        info = get_indicator_info(ev["title"])
+        if info and actual_val is not None and forecast_val is not None:
+            lines.append("")
+            if actual_val > forecast_val:
+                lines.append(f"   {info['high_impact']}")
+            else:
+                lines.append(f"   {info['low_impact']}")
+
+        lines.append("")
+
+    return "\n".join(lines).strip()
 
 # ==================== คำอธิบายตัวชี้วัดเศรษฐกิจ ====================
 INDICATOR_INFO = {
@@ -198,12 +267,19 @@ def main():
 
     upcoming = get_upcoming_events(events)
     print(f"Upcoming High-Impact events in {ALERT_BEFORE_MINUTES} min: {len(upcoming)}")
-
     if upcoming:
         message = format_alert(upcoming)
         send_telegram(message)
     else:
         print("No high-impact events upcoming. No alert sent.")
+
+    released = get_released_events(events)
+    print(f"Recently released High-Impact events: {len(released)}")
+    if released:
+        result_message = format_result(released)
+        send_telegram(result_message)
+    else:
+        print("No recently released events. No result alert sent.")
 
 
 if __name__ == "__main__":
