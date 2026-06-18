@@ -1,0 +1,31 @@
+name: Daily Economic News Bot
+
+on:
+  schedule:
+    - cron: '0 1 * * *' # รันทุกๆ ตี 1 UTC (เทียบเท่า 8 โมงเช้า เวลาประเทศไทย)
+  workflow_dispatch: # อนุญาตให้กดรันแบบ Manual บนหน้าเว็บได้
+
+jobs:
+  run-bot:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Install Playwright (required for notebooklm-py browser features)
+        run: python -m playwright install --with-deps chromium
+
+      - name: Run News Bot
+        env:
+          BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
+          CHAT_ID: ${{ secrets.CHAT_ID }}
+          NOTEBOOKLM_STORAGE_STATE: ${{ secrets.NOTEBOOKLM_STORAGE_STATE }}
+        run: python process_and_send.py "https://www.prachachat.net/category/finance" "https://www.bangkokbiznews.com/business/economic"
