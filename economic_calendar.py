@@ -67,14 +67,9 @@ def fetch_calendar() -> list[dict]:
             continue
 
         try:
-            # Forex Factory ใช้ Eastern Time (ET = UTC-4 หรือ UTC-5)
-            # ค่าที่ได้มาเป็น "01:00pm" format
-            dt_str = f"{date_str} {time_str}"
-            # parse แบบ Eastern Time
-            naive_dt = datetime.strptime(dt_str, "%m-%d-%Y %I:%M%p")
-            # Forex Factory time is US Eastern (UTC-4 in summer)
-            et_tz = timezone(timedelta(hours=-4))
-            event_dt = naive_dt.replace(tzinfo=et_tz)
+            # Forex Factory XML times are in UTC
+            naive_dt = datetime.strptime(f"{date_str} {time_str}", "%m-%d-%Y %I:%M%p")
+            event_dt = naive_dt.replace(tzinfo=timezone.utc)
         except Exception:
             continue
 
