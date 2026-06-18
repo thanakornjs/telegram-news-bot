@@ -13,7 +13,7 @@ WATCH_COUNTRIES = None  # None = ทุกประเทศ High-Impact
 # ตัวอย่างถ้าอยากเลือกเฉพาะ: WATCH_COUNTRIES = ["USD", "THB", "EUR", "JPY"]
 
 # ระดับความสำคัญขั้นต่ำที่จะแจ้งเตือน
-WATCH_IMPACTS = ["High"]  # "High", "Medium", "Low"
+WATCH_IMPACTS = ["High", "Medium"]  # "High", "Medium", "Low"
 
 # แจ้งเตือนล่วงหน้ากี่นาที
 ALERT_BEFORE_MINUTES = 15
@@ -236,6 +236,12 @@ INDICATOR_INFO = {
         "what": "สัดส่วนคนที่ไม่มีงานทำ — ยิ่งต่ำยิ่งดี",
         "high_impact": "🔴 สูงกว่าคาด → คนตกงานมาก → เศรษฐกิจแย่ → หุ้นลง",
         "low_impact":  "🟢 ต่ำกว่าคาด → การจ้างงานดี → หุ้นบวก",
+    },
+    "leading index": {
+        "name": "ดัชนีชี้นำเศรษฐกิจ (CB Leading Index)",
+        "what": "ตัวชี้วัดแนวโน้มเศรษฐกิจในอนาคต (3-6 เดือนข้างหน้า)",
+        "high_impact": "🟢 สูงกว่าคาด → เศรษฐกิจมีแนวโน้มขยายตัว → หุ้นบวก",
+        "low_impact":  "🔴 ต่ำกว่าคาด → เศรษฐกิจมีแนวโน้มชะลอตัว → หุ้นลง",
     },
 }
 
