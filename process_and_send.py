@@ -60,8 +60,20 @@ async def main():
 
     print(f"Processing {len(urls)} URLs...")
     async with NotebookLMClient.from_storage() as client:
-        print("Creating NotebookLM...")
-        nb = await client.notebooks.create("Daily Economic News")
+        print("Looking for existing NotebookLM...")
+        notebooks = await client.notebooks.list()
+        existing_nb = next((n for n in notebooks if n.title == "Daily Economic News"), None)
+        
+        if existing_nb:
+            nb = existing_nb
+            print(f"Using existing NotebookLM: {nb.id}")
+            sources = await client.sources.list(nb.id)
+            for s in sources:
+                await client.sources.delete(nb.id, s.id)
+            print("Cleared old sources from notebook.")
+        else:
+            print("Creating new NotebookLM...")
+            nb = await client.notebooks.create("Daily Economic News")
         
         for url in urls:
             try:
