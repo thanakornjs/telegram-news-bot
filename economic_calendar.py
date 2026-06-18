@@ -28,6 +28,12 @@ IMPACT_EMOJI = {
     "Low":    "⚪",
 }
 
+IMPACT_STARS = {
+    "High":   "⭐⭐⭐",
+    "Medium": "⭐⭐",
+    "Low":    "⭐",
+}
+
 COUNTRY_FLAG = {
     "USD": "🇺🇸", "EUR": "🇪🇺", "GBP": "🇬🇧",
     "JPY": "🇯🇵", "AUD": "🇦🇺", "CAD": "🇨🇦",
@@ -154,7 +160,21 @@ def format_result(events: list[dict]) -> str:
         else:
             verdict = f"📊 ผลจริง: {ev['actual']}"
 
-        lines.append(f"{flag} [{ev['country']}] {ev['title']}")
+        # คำนวณระดับดาวจากความแตกต่าง Actual vs Forecast
+        if actual_val is not None and forecast_val is not None and forecast_val != 0:
+            pct_diff = abs((actual_val - forecast_val) / abs(forecast_val)) * 100
+            if pct_diff >= 20:
+                stars = "⭐⭐⭐"  # แตกต่างมากกว่า 20% = รุนแรงมาก
+            elif pct_diff >= 5:
+                stars = "⭐⭐"   # แตกต่าง 5-20% = ปานกลาง
+            else:
+                stars = "⭐"    # แตกต่างน้อยกว่า 5% = เบา
+        elif actual_val is not None and forecast_val is not None:
+            stars = "⭐⭐⭐" if abs(actual_val - forecast_val) > 0 else "⭐"
+        else:
+            stars = "⭐⭐"
+
+        lines.append(f"{flag} {stars} [{ev['country']}] {ev['title']}")
         lines.append(f"   🕐 เวลา: {thai_time}")
         lines.append(f"   {verdict}")
         lines.append(f"   📉 ครั้งก่อน: {ev['previous']}")
@@ -240,10 +260,11 @@ def format_alert(events: list[dict]) -> str:
     lines = [f"⚠️ *แจ้งเตือนปฏิทินเศรษฐกิจ* — ใน {ALERT_BEFORE_MINUTES} นาทีข้างหน้า!\n"]
     for ev in events:
         impact_emoji = IMPACT_EMOJI.get(ev["impact"], "⚪")
+        stars = IMPACT_STARS.get(ev["impact"], "⭐")
         flag = COUNTRY_FLAG.get(ev["country"], "🌍")
         thai_time = ev["datetime"].astimezone(THAI_TZ).strftime("%H:%M น.")
 
-        lines.append(f"{impact_emoji} {flag} [{ev['country']}] {ev['title']}")
+        lines.append(f"{impact_emoji} {stars} {flag} [{ev['country']}] {ev['title']}")
         lines.append(f"   🕐 เวลา: {thai_time}")
         lines.append(f"   📊 คาดการณ์: {ev['forecast']}  |  ครั้งก่อน: {ev['previous']}")
 
