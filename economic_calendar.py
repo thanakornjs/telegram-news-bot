@@ -135,6 +135,15 @@ def send_telegram(text: str):
         print(f"Failed to send: {e}")
 
 def main():
+    from datetime import datetime
+    now_thai = datetime.now(THAI_TZ).strftime("%d/%m/%Y %H:%M:%S น.")
+
+    # ==================== TEST MODE ====================
+    # ส่งข้อความทดสอบทุกครั้งที่รัน (เพื่อยืนยันว่าระบบทำงานได้)
+    test_message = f"👋 สวัสดีครับ!\n\n🤖 ระบบทดสอบ Economic Calendar Alert\n🕐 เวลา: {now_thai}\n✅ ระบบทำงานปกติครับ"
+    send_telegram(test_message)
+    # ===================================================
+
     print("Fetching economic calendar...")
     events = fetch_calendar()
     print(f"Total events this week: {len(events)}")
