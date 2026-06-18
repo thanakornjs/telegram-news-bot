@@ -2,7 +2,7 @@ name: Economic Calendar Alert
 
 on:
   schedule:
-    - cron: '*/5 * * * *' # ทดสอบ: รันทุก 5 นาที (GitHub ไม่รองรับต่ำกว่านี้)
+    - cron: '*/15 * * * *' # รันทุก 15 นาที ตลอด 24 ชั่วโมง
   workflow_dispatch: # กดรันทดสอบเองได้
 
 jobs:
