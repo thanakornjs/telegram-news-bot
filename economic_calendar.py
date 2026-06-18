@@ -103,8 +103,68 @@ def get_upcoming_events(events: list[dict]) -> list[dict]:
 
     return upcoming
 
+# ==================== คำอธิบายตัวชี้วัดเศรษฐกิจ ====================
+INDICATOR_INFO = {
+    "cpi": {
+        "name": "ดัชนีราคาผู้บริโภค (CPI)",
+        "what": "วัดอัตราเงินเฟ้อ — ราคาสินค้าและบริการแพงขึ้นแค่ไหน",
+        "high_impact": "🔴 ตัวเลขสูงกว่าคาด → เงินเฟ้อสูง → เฟดอาจขึ้นดอกเบี้ย → หุ้นลง, ดอลลาร์แข็ง",
+        "low_impact":  "🟢 ตัวเลขต่ำกว่าคาด → เงินเฟ้อชะลอ → เฟดอาจหยุด/ลดดอกเบี้ย → หุ้นขึ้น, ทองขึ้น",
+    },
+    "core cpi": {
+        "name": "ดัชนีราคาผู้บริโภคพื้นฐาน (Core CPI)",
+        "what": "CPI ที่ตัดพลังงานและอาหารออก — สะท้อนเงินเฟ้อแท้จริง (Fed จับตาตัวนี้มากที่สุด)",
+        "high_impact": "🔴 สูงกว่าคาด → เงินเฟ้อหนักกว่าที่คิด → โอกาสขึ้นดอกเบี้ย → หุ้นร่วง",
+        "low_impact":  "🟢 ต่ำกว่าคาด → เงินเฟ้อชะลอตัว → หุ้นบวก, Bond Rally",
+    },
+    "non-farm payrolls": {
+        "name": "การจ้างงานนอกภาคเกษตร (NFP)",
+        "what": "จำนวนตำแหน่งงานใหม่ในสหรัฐฯ — ตัวเลขสูง = เศรษฐกิจแข็งแกร่ง",
+        "high_impact": "⚡ สูงกว่าคาด → ตลาดแรงงานร้อนแรง → อาจกดดันให้เฟดคงดอกเบี้ย → ดอลลาร์แข็ง",
+        "low_impact":  "📉 ต่ำกว่าคาด → ตลาดแรงงานอ่อนแอ → เฟดอาจลดดอกเบี้ย → หุ้นอาจบวก",
+    },
+    "gdp": {
+        "name": "ผลิตภัณฑ์มวลรวมในประเทศ (GDP)",
+        "what": "อัตราการเติบโตของเศรษฐกิจ — ยิ่งสูง ยิ่งดี",
+        "high_impact": "🟢 สูงกว่าคาด → เศรษฐกิจดีกว่าคาด → หุ้นบวก, ดอลลาร์แข็ง",
+        "low_impact":  "🔴 ต่ำกว่าคาด → เศรษฐกิจชะลอ → หุ้นลบ, อาจกระตุ้นนโยบายผ่อนคลาย",
+    },
+    "interest rate": {
+        "name": "อัตราดอกเบี้ย (Interest Rate Decision)",
+        "what": "การตัดสินใจของธนาคารกลางในการปรับอัตราดอกเบี้ย",
+        "high_impact": "🔴 ขึ้นดอกเบี้ย → กู้แพงขึ้น → หุ้นลง, ค่าเงินแข็ง",
+        "low_impact":  "🟢 ลดดอกเบี้ย → กระตุ้นเศรษฐกิจ → หุ้นขึ้น, ค่าเงินอ่อน",
+    },
+    "pmi": {
+        "name": "ดัชนีผู้จัดการฝ่ายจัดซื้อ (PMI)",
+        "what": "วัดสุขภาพภาคการผลิต/บริการ — เกิน 50 = ขยายตัว, ต่ำกว่า 50 = หดตัว",
+        "high_impact": "🟢 สูงกว่า 50 และเกินคาด → ภาคการผลิตดี → หุ้นบวก",
+        "low_impact":  "🔴 ต่ำกว่า 50 → ภาคการผลิตหดตัว → หุ้นลบ",
+    },
+    "retail sales": {
+        "name": "ยอดค้าปลีก (Retail Sales)",
+        "what": "วัดการใช้จ่ายของผู้บริโภค — ตัวชี้วัดสำคัญของเศรษฐกิจ",
+        "high_impact": "🟢 สูงกว่าคาด → ผู้บริโภคจับจ่าย → เศรษฐกิจดี → หุ้นบวก",
+        "low_impact":  "🔴 ต่ำกว่าคาด → ผู้บริโภคระวัง → เศรษฐกิจชะลอ",
+    },
+    "unemployment": {
+        "name": "อัตราการว่างงาน (Unemployment Rate)",
+        "what": "สัดส่วนคนที่ไม่มีงานทำ — ยิ่งต่ำยิ่งดี",
+        "high_impact": "🔴 สูงกว่าคาด → คนตกงานมาก → เศรษฐกิจแย่ → หุ้นลง",
+        "low_impact":  "🟢 ต่ำกว่าคาด → การจ้างงานดี → หุ้นบวก",
+    },
+}
+
+def get_indicator_info(title: str) -> dict | None:
+    """จับคู่ชื่อเหตุการณ์กับข้อมูลตัวชี้วัด"""
+    title_lower = title.lower()
+    for key, info in INDICATOR_INFO.items():
+        if key in title_lower:
+            return info
+    return None
+
 def format_alert(events: list[dict]) -> str:
-    """สร้างข้อความแจ้งเตือนสวยๆ สำหรับ Telegram"""
+    """สร้างข้อความแจ้งเตือนพร้อมคำอธิบายผลกระทบ"""
     if not events:
         return ""
 
@@ -117,33 +177,21 @@ def format_alert(events: list[dict]) -> str:
         lines.append(f"{impact_emoji} {flag} [{ev['country']}] {ev['title']}")
         lines.append(f"   🕐 เวลา: {thai_time}")
         lines.append(f"   📊 คาดการณ์: {ev['forecast']}  |  ครั้งก่อน: {ev['previous']}")
+
+        # เพิ่มคำอธิบายถ้าเจอตัวชี้วัดที่รู้จัก
+        info = get_indicator_info(ev["title"])
+        if info:
+            lines.append(f"")
+            lines.append(f"   📌 {info['name']}")
+            lines.append(f"   💡 {info['what']}")
+            lines.append(f"   {info['high_impact']}")
+            lines.append(f"   {info['low_impact']}")
+
         lines.append("")
 
     return "\n".join(lines).strip()
 
-def send_telegram(text: str):
-    """ส่งข้อความเข้า Telegram"""
-    if not BOT_TOKEN or not CHAT_ID:
-        print("Missing BOT_TOKEN or CHAT_ID")
-        return
-    url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
-    data = urllib.parse.urlencode({"chat_id": CHAT_ID, "text": text}).encode("utf-8")
-    try:
-        urllib.request.urlopen(urllib.request.Request(url, data=data))
-        print("Alert sent to Telegram!")
-    except Exception as e:
-        print(f"Failed to send: {e}")
-
 def main():
-    from datetime import datetime
-    now_thai = datetime.now(THAI_TZ).strftime("%d/%m/%Y %H:%M:%S น.")
-
-    # ==================== TEST MODE ====================
-    # ส่งข้อความทดสอบทุกครั้งที่รัน (เพื่อยืนยันว่าระบบทำงานได้)
-    test_message = f"👋 สวัสดีครับ!\n\n🤖 ระบบทดสอบ Economic Calendar Alert\n🕐 เวลา: {now_thai}\n✅ ระบบทำงานปกติครับ"
-    send_telegram(test_message)
-    # ===================================================
-
     print("Fetching economic calendar...")
     events = fetch_calendar()
     print(f"Total events this week: {len(events)}")
@@ -156,6 +204,7 @@ def main():
         send_telegram(message)
     else:
         print("No high-impact events upcoming. No alert sent.")
+
 
 if __name__ == "__main__":
     main()
